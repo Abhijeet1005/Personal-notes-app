@@ -5,7 +5,9 @@ import { TaskProvider } from './context/TaskContext';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import Layout from './components/Layout';
-// ... (keep auth)
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import { Toaster } from "@/components/ui/sonner"
 
 // Update PrivateRoute to wrap children in Layout
 const PrivateRoute = ({ children }) => {
