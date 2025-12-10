@@ -42,7 +42,7 @@ router.post('/', auth, async (req, res) => {
 // @desc    Update task
 // @access  Private
 router.put('/:id', auth, async (req, res) => {
-    const { title, description, isDone, date } = req.body;
+    const { title, description, isDone, date, images } = req.body;
 
     // Build task object
     const taskFields = {};
@@ -50,6 +50,7 @@ router.put('/:id', auth, async (req, res) => {
     if (description !== undefined) taskFields.description = description;
     if (isDone !== undefined) taskFields.isDone = isDone;
     if (date) taskFields.date = date;
+    if (images) taskFields.images = images;
 
     try {
         let task = await Task.findById(req.params.id);
@@ -59,6 +60,19 @@ router.put('/:id', auth, async (req, res) => {
         // Make sure user owns task
         if (task.user.toString() !== req.user.id) {
             return res.status(401).json({ msg: 'Not authorized' });
+        }
+
+        // Detect removed images
+        if (images) {
+            const oldImages = task.images || [];
+            const newImages = images;
+
+            const removedImages = oldImages.filter(img => !newImages.includes(img));
+
+            for (const imgUrl of removedImages) {
+                const { deleteFromCloudinary } = require('../utils/cloudinary');
+                await deleteFromCloudinary(imgUrl);
+            }
         }
 
         task = await Task.findByIdAndUpdate(
@@ -86,6 +100,14 @@ router.delete('/:id', auth, async (req, res) => {
         // Make sure user owns task
         if (task.user.toString() !== req.user.id) {
             return res.status(401).json({ msg: 'Not authorized' });
+        }
+
+        // Delete all images
+        if (task.images && task.images.length > 0) {
+            const { deleteFromCloudinary } = require('../utils/cloudinary');
+            for (const imgUrl of task.images) {
+                await deleteFromCloudinary(imgUrl);
+            }
         }
 
         await Task.findByIdAndDelete(req.params.id);

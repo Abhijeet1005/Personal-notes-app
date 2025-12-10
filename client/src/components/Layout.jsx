@@ -11,7 +11,7 @@ const Layout = ({ children }) => {
                 <div className="container flex h-14 items-center justify-between">
                     <div className="mr-4 flex">
                         <a className="mr-6 flex items-center space-x-2" href="/">
-                            <span className="hidden font-bold sm:inline-block">Expandable Tasks</span>
+                            <span className="hidden font-bold sm:inline-block">Notiz</span>
                         </a>
                     </div>
                     <div className="flex items-center space-x-2">

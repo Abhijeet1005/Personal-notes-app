@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, Save, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Save, ChevronDown, ChevronUp, Upload } from 'lucide-react';
 import { useTasks } from '../context/TaskContext';
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import api from '../api/axios';
 
 const TaskItem = ({ task }) => {
     const { updateTask, deleteTask } = useTasks();
@@ -90,7 +91,73 @@ const TaskItem = ({ task }) => {
                             className="min-h-[100px] resize-none"
                             onClick={(e) => e.stopPropagation()}
                         />
-                        <div className="flex justify-between items-center">
+
+                        {/* Image Gallery */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-muted-foreground block">
+                                Images
+                            </label>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                {(task.images || []).map((img, index) => (
+                                    <div key={index} className="relative group aspect-video bg-muted rounded-md overflow-hidden">
+                                        <img src={img} alt="Task attachment" className="w-full h-full object-cover" />
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const newImages = task.images.filter((_, i) => i !== index);
+                                                updateTask(task._id, { images: newImages });
+                                            }}
+                                            className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                <div className="relative aspect-video bg-muted rounded-md flex items-center justify-center border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 transition-colors cursor-pointer">
+                                    <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center text-muted-foreground hover:text-primary transition-colors">
+                                        <Upload className="h-6 w-6 mb-1" />
+                                        <span className="text-xs">Add Image</span>
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={async (e) => {
+                                                const files = Array.from(e.target.files);
+                                                if (files.length === 0) return;
+
+                                                const toastId = toast.loading(`Uploading ${files.length} image(s)...`);
+
+                                                try {
+                                                    const newUrls = [];
+                                                    for (const file of files) {
+                                                        const formData = new FormData();
+                                                        formData.append('file', file);
+                                                        const res = await api.post('/upload', formData, {
+                                                            headers: { 'Content-Type': 'multipart/form-data' }
+                                                        });
+                                                        newUrls.push(res.data.imageUrl);
+                                                    }
+
+                                                    updateTask(task._id, {
+                                                        images: [...(task.images || []), ...newUrls]
+                                                    });
+                                                    toast.success("Images uploaded!", { id: toastId });
+                                                } catch (error) {
+                                                    console.error(error);
+                                                    toast.error("Upload failed", { id: toastId });
+                                                }
+                                            }}
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-2">
                             <Button
                                 variant="destructive"
                                 size="sm"

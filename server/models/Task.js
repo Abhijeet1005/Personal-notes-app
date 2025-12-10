@@ -11,12 +11,16 @@ const TaskSchema = new mongoose.Schema({
         required: true
     },
     description: {
-        type: String, // This is the "expanded" detail
+        type: String,
         default: ''
     },
     isDone: {
         type: Boolean,
         default: false
+    },
+    images: {
+        type: [String],
+        default: []
     },
     date: {
         type: Date,

@@ -23,6 +23,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tasks', require('./routes/tasks'));
+app.use('/api/upload', require('./routes/upload'));
 
 app.get('/', (req, res) => {
     res.send('Expandable Tasks API is running');
